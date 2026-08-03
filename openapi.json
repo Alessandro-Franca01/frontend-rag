@@ -1,0 +1,650 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RAG GROQ API",
+    "description": "API REST para sistema RAG (Retrieval-Augmented Generation) com GROQ e ChromaDB.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check",
+        "description": "Returns the current health status of the API and its dependencies.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/upload": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Upload and index a PDF document",
+        "description": "Upload a PDF file, extract its text, split into overlapping chunks,\ngenerate embeddings and persist them in ChromaDB.",
+        "operationId": "upload_document_documents_upload_post",
+        "parameters": [
+          {
+            "name": "chunk_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 2000,
+              "minimum": 100,
+              "description": "Words per chunk",
+              "default": 500,
+              "title": "Chunk Size"
+            },
+            "description": "Words per chunk"
+          },
+          {
+            "name": "overlap",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 0,
+              "description": "Overlap between chunks",
+              "default": 100,
+              "title": "Overlap"
+            },
+            "description": "Overlap between chunks"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_document_documents_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessDocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "List all indexed documents and collection stats",
+        "operationId": "list_documents_documents__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollectionStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Clear the entire collection (all documents)",
+        "operationId": "clear_collection_documents__delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/documents/{pdf_name}": {
+      "delete": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Remove all chunks belonging to a specific PDF",
+        "operationId": "delete_document_documents__pdf_name__delete",
+        "parameters": [
+          {
+            "name": "pdf_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pdf Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteDocumentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search/": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Semantic search — retrieve relevant chunks",
+        "description": "Performs a pure semantic search and returns the most relevant text chunks\n**without** calling the LLM. Useful for inspecting retrieved context.",
+        "operationId": "semantic_search_search__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search/ask": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Ask a question — search + LLM answer",
+        "description": "Full RAG pipeline:\n1. Semantic search to retrieve the most relevant chunks.\n2. Pass chunks as context to the GROQ LLM.\n3. Return the generated answer along with metadata.",
+        "operationId": "ask_search_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AskRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Query",
+            "description": "Pergunta sobre os documentos"
+          },
+          "n_results": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "N Results",
+            "description": "Número de chunks a recuperar",
+            "default": 5
+          },
+          "source_filter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Filter",
+            "description": "Filtrar por nome do arquivo PDF"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "AskRequest",
+        "description": "Subclass of QueryRequest so `/search` and `/search/ask` share a single\nsource of field definitions (they cannot drift apart) while keeping a\ndistinct schema name in the OpenAPI document."
+      },
+      "AskResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "chunks_used": {
+            "type": "integer",
+            "title": "Chunks Used"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "answer",
+          "sources",
+          "chunks_used",
+          "model"
+        ],
+        "title": "AskResponse"
+      },
+      "Body_upload_document_documents_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "PDF file to upload and index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_document_documents_upload_post"
+      },
+      "ChunkResult": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/DocumentMetadata"
+          },
+          "distance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "metadata"
+        ],
+        "title": "ChunkResult"
+      },
+      "CollectionStatsResponse": {
+        "properties": {
+          "total_chunks": {
+            "type": "integer",
+            "title": "Total Chunks"
+          },
+          "collection_name": {
+            "type": "string",
+            "title": "Collection Name"
+          },
+          "persist_directory": {
+            "type": "string",
+            "title": "Persist Directory"
+          },
+          "documents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Documents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_chunks",
+          "collection_name",
+          "persist_directory"
+        ],
+        "title": "CollectionStatsResponse"
+      },
+      "DeleteDocumentResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "pdf_name": {
+            "type": "string",
+            "title": "Pdf Name"
+          },
+          "chunks_deleted": {
+            "type": "integer",
+            "title": "Chunks Deleted"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "pdf_name",
+          "chunks_deleted",
+          "message"
+        ],
+        "title": "DeleteDocumentResponse"
+      },
+      "DocumentMetadata": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "chunk_index": {
+            "type": "integer",
+            "title": "Chunk Index"
+          },
+          "total_chunks": {
+            "type": "integer",
+            "title": "Total Chunks"
+          },
+          "char_length": {
+            "type": "integer",
+            "title": "Char Length"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "chunk_index",
+          "total_chunks",
+          "char_length"
+        ],
+        "title": "DocumentMetadata"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "collection_chunks": {
+            "type": "integer",
+            "title": "Collection Chunks"
+          },
+          "embedding_model": {
+            "type": "string",
+            "title": "Embedding Model"
+          },
+          "groq_model": {
+            "type": "string",
+            "title": "Groq Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "collection_chunks",
+          "embedding_model",
+          "groq_model"
+        ],
+        "title": "HealthResponse"
+      },
+      "ProcessDocumentResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "pdf_name": {
+            "type": "string",
+            "title": "Pdf Name"
+          },
+          "chunks_added": {
+            "type": "integer",
+            "title": "Chunks Added"
+          },
+          "text_length": {
+            "type": "integer",
+            "title": "Text Length"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "pdf_name",
+          "chunks_added",
+          "text_length",
+          "message"
+        ],
+        "title": "ProcessDocumentResponse"
+      },
+      "QueryRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Query",
+            "description": "Pergunta sobre os documentos"
+          },
+          "n_results": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "N Results",
+            "description": "Número de chunks a recuperar",
+            "default": 5
+          },
+          "source_filter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Filter",
+            "description": "Filtrar por nome do arquivo PDF"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "QueryRequest"
+      },
+      "SearchResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "chunks": {
+            "items": {
+              "$ref": "#/components/schemas/ChunkResult"
+            },
+            "type": "array",
+            "title": "Chunks"
+          },
+          "total_found": {
+            "type": "integer",
+            "title": "Total Found"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "chunks",
+          "total_found"
+        ],
+        "title": "SearchResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

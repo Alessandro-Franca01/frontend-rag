@@ -1,0 +1,113 @@
+<div class="page fade-up">
+
+  <header class="page__header fade-up--1">
+    <div>
+      <h1 class="page__title">Busca Semântica</h1>
+      <p class="page__subtitle">Recupere os chunks mais relevantes sem gerar uma resposta — ideal para inspecionar o contexto.</p>
+    </div>
+    <span class="badge badge--blue">Retrieval only</span>
+  </header>
+
+  <!-- ── Form ──────────────────────────────────────────────── -->
+  <div class="card fade-up--2">
+    <div class="form-group">
+      <label class="form-label">Query</label>
+      <input
+        class="form-input"
+        [(ngModel)]="query"
+        (keydown)="onKeydown($event)"
+        placeholder="Ex: requisitos técnicos do servidor"
+      />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group form-group--sm">
+        <label class="form-label">Resultados</label>
+        <input class="form-input" type="number" [(ngModel)]="nResults" min="1" max="20" />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Filtrar por documento <span class="form-hint-inline">(opcional)</span></label>
+        <input class="form-input" [(ngModel)]="sourceFilter" placeholder="ex: contrato.pdf" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn--ghost" (click)="clear()" [disabled]="loading()">Limpar</button>
+      <button class="btn btn--primary" (click)="submit()" [disabled]="!query.trim() || loading()">
+        @if (loading()) {
+          <span class="spinner"></span> Buscando…
+        } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Buscar
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Error ─────────────────────────────────────────────── -->
+  @if (error()) {
+    <div class="alert alert--error fade-up">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- ── Results ───────────────────────────────────────────── -->
+  @if (response()) {
+    <div class="results-header fade-up">
+      <span class="results-label">{{ response()!.total_found }} chunks encontrados</span>
+      <span class="mono" style="font-size:12px; color:var(--text-muted)">query: "{{ response()!.query }}"</span>
+    </div>
+
+    <div class="chunks-list fade-up">
+      @for (chunk of response()!.chunks; track chunk.metadata.chunk_index; let i = $index) {
+        <div class="chunk-card" [class.chunk-card--expanded]="expandedChunk() === i">
+          <div class="chunk-card__header" (click)="toggleChunk(i)">
+
+            <div class="chunk-rank">#{{ i + 1 }}</div>
+
+            <div class="chunk-meta">
+              <span class="chunk-source mono">{{ chunk.metadata.source }}</span>
+              <span class="chunk-info">
+                Chunk {{ chunk.metadata.chunk_index + 1 }}/{{ chunk.metadata.total_chunks }}
+                · {{ chunk.metadata.char_length }} chars
+              </span>
+            </div>
+
+            <div class="chunk-relevance">
+              <div class="relevance-bar">
+                <div
+                  class="relevance-fill"
+                  [style.width.%]="relevancePercent(chunk.distance)"
+                  [style.background]="relevanceColor(chunk.distance)"
+                ></div>
+              </div>
+              <span class="relevance-label" [style.color]="relevanceColor(chunk.distance)">
+                {{ relevancePercent(chunk.distance) }}%
+              </span>
+            </div>
+
+            <svg
+              class="chunk-chevron"
+              [class.chunk-chevron--open]="expandedChunk() === i"
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            >
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+
+          @if (expandedChunk() === i) {
+            <div class="chunk-card__body">
+              <p class="chunk-text">{{ chunk.text }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>

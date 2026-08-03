@@ -1,0 +1,96 @@
+<div class="page fade-up">
+
+  <header class="page__header fade-up--1">
+    <div>
+      <h1 class="page__title">Perguntar</h1>
+      <p class="page__subtitle">Faça perguntas sobre os documentos indexados e receba respostas contextualizadas.</p>
+    </div>
+    <span class="badge badge--amber">RAG Pipeline</span>
+  </header>
+
+  <!-- ── Form ───────────────────────────────────────────────── -->
+  <div class="card fade-up--2">
+    <div class="form-group">
+      <label class="form-label">Sua pergunta</label>
+      <textarea
+        class="form-textarea"
+        [(ngModel)]="query"
+        (keydown)="onKeydown($event)"
+        placeholder="Ex: Qual é o objeto principal deste contrato?"
+        rows="4"
+      ></textarea>
+      <span class="form-hint">Pressione <kbd>Ctrl+Enter</kbd> para enviar</span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group form-group--sm">
+        <label class="form-label">Chunks a recuperar</label>
+        <input class="form-input" type="number" [(ngModel)]="nResults" min="1" max="20" />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Filtrar por documento <span class="form-hint-inline">(opcional)</span></label>
+        <input class="form-input" type="text" [(ngModel)]="sourceFilter" placeholder="ex: contrato.pdf" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn--ghost" (click)="clear()" [disabled]="loading()">Limpar</button>
+      <button class="btn btn--primary" (click)="submit()" [disabled]="!query.trim() || loading()">
+        @if (loading()) {
+          <span class="spinner"></span> Processando…
+        } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Enviar
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Error ──────────────────────────────────────────────── -->
+  @if (error()) {
+    <div class="alert alert--error fade-up">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- ── Response ───────────────────────────────────────────── -->
+  @if (response()) {
+    <div class="response-card fade-up">
+      <div class="response-card__header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Resposta</span>
+        <div class="response-meta">
+          <span class="badge badge--blue mono">{{ response()!.model }}</span>
+          <span class="badge badge--amber">{{ response()!.chunks_used }} chunks</span>
+        </div>
+      </div>
+
+      <div class="response-card__body">
+        <p class="response-text">{{ response()!.answer }}</p>
+      </div>
+
+      @if (response()!.sources.length) {
+        <div class="response-card__sources">
+          <span class="sources-label">Fontes:</span>
+          @for (src of response()!.sources; track src) {
+            <span class="badge badge--green">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              {{ src }}
+            </span>
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>

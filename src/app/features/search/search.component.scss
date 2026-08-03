@@ -1,0 +1,141 @@
+@use '../ask/ask.component.scss';
+
+/* ── Results header ─────────────────────────────────────────── */
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.results-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── Chunks list ────────────────────────────────────────────── */
+.chunks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Chunk card ─────────────────────────────────────────────── */
+.chunk-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition), box-shadow var(--transition);
+
+  &:hover { border-color: rgba(255,255,255,0.12); }
+
+  &--expanded {
+    border-color: var(--border-amber);
+    box-shadow: 0 0 20px rgba(240,165,0,0.08);
+  }
+}
+
+.chunk-card__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover { background: var(--bg-elevated); }
+}
+
+.chunk-rank {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--amber);
+  min-width: 24px;
+}
+
+.chunk-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.chunk-source {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chunk-info {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-family: var(--font-mono);
+}
+
+/* ── Relevance bar ──────────────────────────────────────────── */
+.chunk-relevance {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.relevance-bar {
+  width: 80px;
+  height: 4px;
+  background: var(--bg-overlay);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.relevance-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.relevance-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ── Chevron ─────────────────────────────────────────────────── */
+.chunk-chevron {
+  color: var(--text-muted);
+  transition: transform var(--transition);
+  flex-shrink: 0;
+
+  &--open { transform: rotate(180deg); color: var(--amber); }
+}
+
+/* ── Chunk body ─────────────────────────────────────────────── */
+.chunk-card__body {
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--border);
+  animation: fadeUp 0.2s ease both;
+}
+
+.chunk-text {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  margin-top: 14px;
+}
+
+@media (max-width: 600px) {
+  .relevance-bar { width: 50px; }
+  .chunk-card__header { gap: 8px; padding: 12px 14px; }
+}
