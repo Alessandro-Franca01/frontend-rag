@@ -1,5 +1,7 @@
 export const environment = {
   production: true,
-  // TODO: point this at the deployed API's real origin before shipping.
-  apiUrl: 'https://api.example.com',
+  apiUrl: '/api',
+  // Left empty on purpose: shipping a real key here would leak it in the
+  // client bundle. nginx injects X-API-Key server-side in production.
+  apiKey: '',
 };

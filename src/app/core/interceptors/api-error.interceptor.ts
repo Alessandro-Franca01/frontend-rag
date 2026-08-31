@@ -9,6 +9,7 @@ import { catchError } from 'rxjs/operators';
 
 export const DEFAULT_CONNECTION_ERROR = 'Erro ao conectar com a API.';
 export const DEFAULT_GENERIC_ERROR = 'Ocorreu um erro inesperado.';
+export const DEFAULT_UNAUTHORIZED_ERROR = 'Não autorizado. Verifique a chave de API.';
 
 interface FastApiValidationItem {
   loc?: (string | number)[];
@@ -42,11 +43,18 @@ export function apiErrorInterceptor(
 ): Observable<HttpEvent<unknown>> {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      // status 0 means the request never reached a server (network failure,
+      // DNS, CORS preflight rejection, etc.) — HttpClient always delivers an
+      // HttpErrorResponse, so `error.error` here is a ProgressEvent, not a
+      // FastAPI body. Reading `.detail` off it silently falls through to
+      // DEFAULT_GENERIC_ERROR instead of a "can't connect" message.
       let message: string;
-      if (error instanceof HttpErrorResponse) {
-        message = extractDetail(error) ?? DEFAULT_GENERIC_ERROR;
-      } else {
+      if (error.status === 0) {
         message = DEFAULT_CONNECTION_ERROR;
+      } else if (error.status === 401) {
+        message = DEFAULT_UNAUTHORIZED_ERROR;
+      } else {
+        message = extractDetail(error) ?? DEFAULT_GENERIC_ERROR;
       }
       const normalized = new HttpErrorResponse({
         error: { detail: message },
