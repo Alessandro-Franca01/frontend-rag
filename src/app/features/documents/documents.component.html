@@ -11,6 +11,7 @@
   </header>
 
   <!-- ── Upload zone ─────────────────────────────────────────── -->
+  @if (auth.isAdmin()) {
   <div class="card fade-up--2">
     <h2 class="section-title">Adicionar documento</h2>
 
@@ -67,12 +68,13 @@
       </div>
     }
   </div>
+  }
 
   <!-- ── Document list ──────────────────────────────────────── -->
   <div class="card fade-up--3">
     <div class="section-header">
       <h2 class="section-title">Documentos indexados</h2>
-      @if (stats() && (stats()!.documents ?? []).length > 0) {
+      @if (auth.isAdmin() && stats() && (stats()!.documents ?? []).length > 0) {
         @if (confirmClear()) {
           <div class="confirm-row">
             <span class="confirm-text">Tem certeza?</span>
@@ -109,22 +111,24 @@
               <polyline points="14 2 14 8 20 8"/>
             </svg>
             <span class="doc-name mono">{{ doc }}</span>
-            <button
-              class="btn btn--danger btn--sm btn--icon"
-              (click)="deleteDoc(doc)"
-              [disabled]="deletingDoc() === doc"
-              title="Remover"
-            >
-              @if (deletingDoc() === doc) {
-                <span class="spinner"></span>
-              } @else {
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6l-1 14H6L5 6"/>
-                  <path d="M10 11v6M14 11v6"/>
-                </svg>
-              }
-            </button>
+            @if (auth.isAdmin()) {
+              <button
+                class="btn btn--danger btn--sm btn--icon"
+                (click)="deleteDoc(doc)"
+                [disabled]="deletingDoc() === doc"
+                title="Remover"
+              >
+                @if (deletingDoc() === doc) {
+                  <span class="spinner"></span>
+                } @else {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                  </svg>
+                }
+              </button>
+            }
           </li>
         }
       </ul>

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RagApiService } from '../../core/services/rag-api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { CollectionStatsResponse } from '../../core/models/api.models';
 
 @Component({
@@ -13,6 +14,7 @@ import { CollectionStatsResponse } from '../../core/models/api.models';
 })
 export class DocumentsComponent implements OnInit {
   private readonly api = inject(RagApiService);
+  readonly auth = inject(AuthService);
 
   stats = signal<CollectionStatsResponse | null>(null);
   loadingStats = signal(true);

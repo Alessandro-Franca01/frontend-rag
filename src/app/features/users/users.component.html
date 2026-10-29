@@ -1,0 +1,106 @@
+<div class="page fade-up">
+
+  <header class="page__header fade-up--1">
+    <div>
+      <h1 class="page__title">Usuários</h1>
+      <p class="page__subtitle">Gerencie quem pode acessar o sistema e com qual perfil.</p>
+    </div>
+    @if (users().length) {
+      <span class="badge badge--amber">{{ users().length }} usuários</span>
+    }
+  </header>
+
+  <!-- ── Create form ──────────────────────────────────────────── -->
+  <form class="card fade-up--2" #createForm="ngForm" (ngSubmit)="createUser()">
+    <h2 class="section-title">Novo usuário</h2>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" name="newEmail" [(ngModel)]="email" required email />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Nome <span class="form-hint-inline">(opcional)</span></label>
+        <input class="form-input" type="text" name="newFullName" [(ngModel)]="fullName" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Senha</label>
+        <input class="form-input" type="password" name="newPassword" [(ngModel)]="password" required minlength="8" />
+      </div>
+      <div class="form-group form-group--sm">
+        <label class="form-label">Perfil</label>
+        <select class="form-input" name="newRole" [(ngModel)]="role">
+          <option value="consultor">Consultor</option>
+          <option value="administrativo">Administrativo</option>
+        </select>
+      </div>
+    </div>
+
+    @if (createError()) {
+      <div class="alert alert--error fade-up">{{ createError() }}</div>
+    }
+
+    <div class="form-actions">
+      <button class="btn btn--primary" type="submit" [disabled]="createForm.invalid || creating()">
+        @if (creating()) {
+          <span class="spinner"></span> Criando…
+        } @else {
+          Criar usuário
+        }
+      </button>
+    </div>
+  </form>
+
+  <!-- ── User list ────────────────────────────────────────────── -->
+  <div class="card fade-up--3">
+    <h2 class="section-title">Usuários cadastrados</h2>
+
+    @if (loading()) {
+      <div class="loading-row">
+        <span class="spinner"></span> Carregando…
+      </div>
+    } @else if (loadError()) {
+      <div class="alert alert--error">{{ loadError() }}</div>
+    } @else if (users().length === 0) {
+      <div class="empty-state">
+        <p>Nenhum usuário cadastrado ainda.</p>
+      </div>
+    } @else {
+      <ul class="doc-list">
+        @for (user of users(); track user.id) {
+          <li class="doc-item user-item">
+            <div class="user-item__info">
+              <span class="doc-name mono">{{ user.email }}</span>
+              <span class="badge" [class.badge--amber]="user.role === 'administrativo'" [class.badge--blue]="user.role === 'consultor'">
+                {{ user.role }}
+              </span>
+              <span class="badge" [class.badge--green]="user.is_active" [class.badge--red]="!user.is_active">
+                {{ user.is_active ? 'ativo' : 'inativo' }}
+              </span>
+            </div>
+            <button
+              class="btn btn--ghost btn--sm"
+              (click)="toggleActive(user)"
+              [disabled]="updatingId() === user.id || isSelf(user)"
+              [title]="isSelf(user) ? 'Você não pode desativar a própria conta' : ''"
+            >
+              @if (updatingId() === user.id) {
+                <span class="spinner"></span>
+              } @else {
+                {{ user.is_active ? 'Desativar' : 'Ativar' }}
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (updateError()) {
+      <div class="alert alert--error" style="margin-top:12px">{{ updateError() }}</div>
+    }
+  </div>
+
+</div>
