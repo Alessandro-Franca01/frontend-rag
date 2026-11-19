@@ -47,3 +47,15 @@ export interface UpdateUserRequest {
   is_active?: boolean;
   role?: Role;
 }
+
+export interface AuditLogRecord {
+  id: number;
+  user_id: number | null;
+  email: string | null;
+  via_api_key: boolean;
+  query: string;
+  sources: string[];
+  chunks_used: number;
+  status: 'ok' | 'no_results' | 'error';
+  created_at: string;
+}
