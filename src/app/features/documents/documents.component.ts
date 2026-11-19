@@ -28,6 +28,9 @@ export class DocumentsComponent implements OnInit {
   deleteError = signal<string | null>(null);
   clearError = signal<string | null>(null);
 
+  readonly pageSize = 100;
+  page = signal(0);
+
   chunkSize = 500;
   overlap = 100;
 
@@ -41,13 +44,23 @@ export class DocumentsComponent implements OnInit {
   loadStats(): void {
     this.loadingStats.set(true);
     this.statsError.set(null);
-    this.api.getDocuments().subscribe({
+    this.api.getDocuments(this.pageSize, this.page() * this.pageSize).subscribe({
       next: s  => { this.stats.set(s); this.loadingStats.set(false); },
       error: err => {
         this.statsError.set(err.error?.detail);
         this.loadingStats.set(false);
       },
     });
+  }
+
+  goToPage(page: number): void {
+    this.page.set(page);
+    this.loadStats();
+  }
+
+  hasNextPage(): boolean {
+    const s = this.stats();
+    return !!s && (this.page() + 1) * this.pageSize < s.total_documents;
   }
 
   onFileSelected(event: Event): void {
