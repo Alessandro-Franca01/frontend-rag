@@ -33,6 +33,21 @@
       </div>
     </div>
 
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Grupo <span class="form-hint-inline">(opcional)</span></label>
+        <input class="form-input" type="text" [(ngModel)]="grupo" placeholder="ex: GPA" />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Data inicial <span class="form-hint-inline">(opcional)</span></label>
+        <input class="form-input" type="date" [(ngModel)]="dataInicio" />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Data final <span class="form-hint-inline">(opcional)</span></label>
+        <input class="form-input" type="date" [(ngModel)]="dataFim" />
+      </div>
+    </div>
+
     <div class="form-actions">
       <button class="btn btn--ghost" (click)="clear()" [disabled]="loading()">Limpar</button>
       <button class="btn btn--primary" (click)="submit()" [disabled]="!query.trim() || loading()">
@@ -79,14 +94,20 @@
       @if (response()!.sources.length) {
         <div class="response-card__sources">
           <span class="sources-label">Fontes:</span>
-          @for (src of response()!.sources; track src) {
-            <span class="badge badge--green">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              {{ src }}
-            </span>
+          @for (link of response()!.source_links ?? []; track link.doc_id) {
+            @if (link.url) {
+              <a class="badge badge--green" [href]="link.url" target="_blank" rel="noopener" title="Abrir o PDF original na página citada">
+                {{ link.source }}@if (link.pagina) { · pág. {{ link.pagina }} }
+              </a>
+            } @else {
+              <span class="badge badge--green">
+                {{ link.source }}@if (link.pagina) { · pág. {{ link.pagina }} }
+              </span>
+            }
+          } @empty {
+            @for (src of response()!.sources; track src) {
+              <span class="badge badge--green">{{ src }}</span>
+            }
           }
         </div>
       }

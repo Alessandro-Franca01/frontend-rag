@@ -4,6 +4,60 @@
  */
 
 export interface paths {
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log in with e-mail and password */
+        post: operations["login_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current caller identity */
+        get: operations["me_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Liveness probe (no auth, no RAG dependency)
+         * @description Cheap check for container/orchestrator healthchecks. Never touches RAGService.
+         */
+        get: operations["health_live_health_live_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -18,6 +72,46 @@ export interface paths {
         get: operations["health_check_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all indexed documents and collection stats */
+        get: operations["list_documents_documents__get"];
+        put?: never;
+        post?: never;
+        /** Clear the entire collection (all documents) */
+        delete: operations["clear_collection_documents__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/ingest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Index a PDF that is already in the storage (called by the Livro system)
+         * @description Downloads the PDF at `key`, extracts its text and indexes it with the report
+         *     metadata. Idempotent per (`origem`, `external_id`): sending the same report
+         *     again replaces the previous version, and an identical file is not re-indexed.
+         */
+        post: operations["ingest_document_documents_ingest_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -45,24 +139,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/documents/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List all indexed documents and collection stats */
-        get: operations["list_documents_documents__get"];
-        put?: never;
-        post?: never;
-        /** Clear the entire collection (all documents) */
-        delete: operations["clear_collection_documents__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/documents/{pdf_name}": {
         parameters: {
             query?: never;
@@ -73,7 +149,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Remove all chunks belonging to a specific PDF */
+        /** Remove a document by doc_id (or every document uploaded under a file name) */
         delete: operations["delete_document_documents__pdf_name__delete"];
         options?: never;
         head?: never;
@@ -124,6 +200,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audit/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List audited questions (newest first) */
+        get: operations["list_audit_logs_audit__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List users */
+        get: operations["list_users_users__get"];
+        put?: never;
+        /** Create a user */
+        post: operations["create_user_users__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Activate/deactivate a user or change their role */
+        patch: operations["update_user_users__user_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -151,6 +279,36 @@ export interface components {
              * @description Filtrar por nome do arquivo PDF
              */
             source_filter?: string | null;
+            /**
+             * Doc Id
+             * @description Filtrar por id único do documento
+             */
+            doc_id?: string | null;
+            /**
+             * Origem
+             * @description Filtrar por origem (ex.: upload, livro)
+             */
+            origem?: string | null;
+            /**
+             * Grupo
+             * @description Filtrar por grupo
+             */
+            grupo?: string | null;
+            /**
+             * Nivel Acesso
+             * @description Filtrar por nível de acesso
+             */
+            nivel_acesso?: ("publico" | "interno" | "sigiloso") | null;
+            /**
+             * Data Inicio
+             * @description Data do documento a partir de (inclusive)
+             */
+            data_inicio?: string | null;
+            /**
+             * Data Fim
+             * @description Data do documento até (inclusive)
+             */
+            data_fim?: string | null;
         };
         /** AskResponse */
         AskResponse: {
@@ -160,10 +318,36 @@ export interface components {
             answer: string;
             /** Sources */
             sources: string[];
+            /** Source Links */
+            source_links?: components["schemas"]["SourceLink"][];
             /** Chunks Used */
             chunks_used: number;
             /** Model */
             model: string;
+        };
+        /** AuditLogOut */
+        AuditLogOut: {
+            /** Id */
+            id: number;
+            /** User Id */
+            user_id?: number | null;
+            /** Email */
+            email?: string | null;
+            /** Via Api Key */
+            via_api_key: boolean;
+            /** Query */
+            query: string;
+            /** Sources */
+            sources: string[];
+            /** Chunks Used */
+            chunks_used: number;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** Body_upload_document_documents_upload_post */
         Body_upload_document_documents_upload_post: {
@@ -191,6 +375,18 @@ export interface components {
             persist_directory: string;
             /** Documents */
             documents?: string[];
+            /**
+             * Total Documents
+             * @default 0
+             */
+            total_documents: number;
+            /** Limit */
+            limit?: number | null;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
         };
         /** DeleteDocumentResponse */
         DeleteDocumentResponse: {
@@ -203,7 +399,11 @@ export interface components {
             /** Message */
             message: string;
         };
-        /** DocumentMetadata */
+        /**
+         * DocumentMetadata
+         * @description Per-chunk metadata. Fields added in Etapa 1A default to empty values so
+         *     chunks indexed before the schema existed still validate.
+         */
         DocumentMetadata: {
             /** Source */
             source: string;
@@ -213,6 +413,56 @@ export interface components {
             total_chunks: number;
             /** Char Length */
             char_length: number;
+            /**
+             * Doc Id
+             * @default
+             */
+            doc_id: string;
+            /**
+             * Origem
+             * @default
+             */
+            origem: string;
+            /**
+             * Data
+             * @default
+             */
+            data: string;
+            /**
+             * Grupo
+             * @default
+             */
+            grupo: string;
+            /**
+             * Pagina
+             * @default 0
+             */
+            pagina: number;
+            /**
+             * Pagina Fim
+             * @default 0
+             */
+            pagina_fim: number;
+            /**
+             * Nivel Acesso
+             * @default
+             */
+            nivel_acesso: string;
+            /**
+             * Storage Key
+             * @default
+             */
+            storage_key: string;
+            /**
+             * External Id
+             * @default
+             */
+            external_id: string;
+            /**
+             * Content Hash
+             * @default
+             */
+            content_hash: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -231,11 +481,97 @@ export interface components {
             embedding_model: string;
             /** Groq Model */
             groq_model: string;
+            /** Index Issue */
+            index_issue?: string | null;
+        };
+        /**
+         * IngestRequest
+         * @description A report already stored in the object storage, announced by the Livro system.
+         */
+        IngestRequest: {
+            /**
+             * Key
+             * @description Object key of the PDF in the storage
+             */
+            key: string;
+            /**
+             * External Id
+             * @description Report id in the source system
+             */
+            external_id: string;
+            /**
+             * Data
+             * Format: date
+             * @description Report date
+             */
+            data: string;
+            /**
+             * Grupo
+             * @default
+             */
+            grupo: string;
+            /**
+             * Nivel Acesso
+             * @default interno
+             * @enum {string}
+             */
+            nivel_acesso: "publico" | "interno" | "sigiloso";
+            /**
+             * Origem
+             * @default livro
+             */
+            origem: string;
+            /**
+             * Source Name
+             * @description Display name (defaults to the key's file name)
+             */
+            source_name?: string | null;
+        };
+        /** IngestResponse */
+        IngestResponse: {
+            /** Success */
+            success: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "created" | "replaced" | "unchanged";
+            /** Doc Id */
+            doc_id: string;
+            /** Pdf Name */
+            pdf_name: string;
+            /** Chunks Added */
+            chunks_added: number;
+            /** Message */
+            message: string;
+        };
+        /** LoginRequest */
+        LoginRequest: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Password */
+            password: string;
+        };
+        /** MeResponse */
+        MeResponse: {
+            /** Email */
+            email?: string | null;
+            role: components["schemas"]["Role"];
+            /** Via Api Key */
+            via_api_key: boolean;
         };
         /** ProcessDocumentResponse */
         ProcessDocumentResponse: {
             /** Success */
             success: boolean;
+            /**
+             * Doc Id
+             * @default
+             */
+            doc_id: string;
             /** Pdf Name */
             pdf_name: string;
             /** Chunks Added */
@@ -263,7 +599,42 @@ export interface components {
              * @description Filtrar por nome do arquivo PDF
              */
             source_filter?: string | null;
+            /**
+             * Doc Id
+             * @description Filtrar por id único do documento
+             */
+            doc_id?: string | null;
+            /**
+             * Origem
+             * @description Filtrar por origem (ex.: upload, livro)
+             */
+            origem?: string | null;
+            /**
+             * Grupo
+             * @description Filtrar por grupo
+             */
+            grupo?: string | null;
+            /**
+             * Nivel Acesso
+             * @description Filtrar por nível de acesso
+             */
+            nivel_acesso?: ("publico" | "interno" | "sigiloso") | null;
+            /**
+             * Data Inicio
+             * @description Data do documento a partir de (inclusive)
+             */
+            data_inicio?: string | null;
+            /**
+             * Data Fim
+             * @description Data do documento até (inclusive)
+             */
+            data_fim?: string | null;
         };
+        /**
+         * Role
+         * @enum {string}
+         */
+        Role: "administrativo" | "consultor";
         /** SearchResponse */
         SearchResponse: {
             /** Query */
@@ -272,6 +643,80 @@ export interface components {
             chunks: components["schemas"]["ChunkResult"][];
             /** Total Found */
             total_found: number;
+        };
+        /**
+         * SourceLink
+         * @description Where an answer came from. `url` opens the original PDF at `pagina` (None on the local backend).
+         */
+        SourceLink: {
+            /** Source */
+            source: string;
+            /**
+             * Doc Id
+             * @default
+             */
+            doc_id: string;
+            /**
+             * Pagina
+             * @default 0
+             */
+            pagina: number;
+            /** Url */
+            url?: string | null;
+        };
+        /** TokenResponse */
+        TokenResponse: {
+            /** Access Token */
+            access_token: string;
+            /**
+             * Token Type
+             * @default bearer
+             */
+            token_type: string;
+            /** Expires In */
+            expires_in: number;
+        };
+        /** UserCreate */
+        UserCreate: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /**
+             * Full Name
+             * @default
+             */
+            full_name: string;
+            /** Password */
+            password: string;
+            /** @default consultor */
+            role: components["schemas"]["Role"];
+        };
+        /** UserOut */
+        UserOut: {
+            /** Id */
+            id: number;
+            /** Email */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            role: components["schemas"]["Role"];
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Login At */
+            last_login_at?: string | null;
+        };
+        /** UserUpdate */
+        UserUpdate: {
+            /** Is Active */
+            is_active?: boolean | null;
+            role?: components["schemas"]["Role"] | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -295,6 +740,81 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    login_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
+    health_live_health_live_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     health_check_health_get: {
         parameters: {
             query?: never;
@@ -315,6 +835,91 @@ export interface operations {
             };
         };
     };
+    list_documents_documents__get: {
+        parameters: {
+            query?: {
+                /** @description Documents per page */
+                limit?: number;
+                /** @description Documents to skip */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CollectionStatsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_collection_documents__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ingest_document_documents_ingest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IngestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IngestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     upload_document_documents_upload_post: {
         parameters: {
             query?: {
@@ -322,6 +927,12 @@ export interface operations {
                 chunk_size?: number;
                 /** @description Overlap between chunks */
                 overlap?: number;
+                /** @description Group the document belongs to */
+                grupo?: string;
+                /** @description Access level of the document */
+                nivel_acesso?: "publico" | "interno" | "sigiloso";
+                /** @description Document date (defaults to today) */
+                data?: string | null;
             };
             header?: never;
             path?: never;
@@ -350,44 +961,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
-            };
-        };
-    };
-    list_documents_documents__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CollectionStatsResponse"];
-                };
-            };
-        };
-    };
-    clear_collection_documents__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -475,6 +1048,132 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_audit_logs_audit__get: {
+        parameters: {
+            query?: {
+                /** @description Only questions from this e-mail */
+                email?: string | null;
+                /** @description Created at or after (ISO 8601) */
+                since?: string | null;
+                /** @description Created at or before (ISO 8601) */
+                until?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_users_users__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"][];
+                };
+            };
+        };
+    };
+    create_user_users__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_users__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
                 };
             };
             /** @description Validation Error */

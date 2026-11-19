@@ -41,8 +41,9 @@ export class RagApiService {
     );
   }
 
-  getDocuments(): Observable<CollectionStatsResponse> {
-    return this.http.get<CollectionStatsResponse>(`${this.base}/documents/`);
+  getDocuments(limit = 100, offset = 0): Observable<CollectionStatsResponse> {
+    const params = new HttpParams().set('limit', limit).set('offset', offset);
+    return this.http.get<CollectionStatsResponse>(`${this.base}/documents/`, { params });
   }
 
   deleteDocument(pdfName: string): Observable<DeleteDocumentResponse> {

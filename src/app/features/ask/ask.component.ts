@@ -17,6 +17,9 @@ export class AskComponent {
   query = '';
   nResults = 5;
   sourceFilter = '';
+  grupo = '';
+  dataInicio = '';
+  dataFim = '';
 
   loading = signal(false);
   response = signal<AskResponse | null>(null);
@@ -34,6 +37,9 @@ export class AskComponent {
         query: this.query.trim(),
         n_results: this.nResults,
         source_filter: this.sourceFilter.trim() || null,
+        grupo: this.grupo.trim() || null,
+        data_inicio: this.dataInicio || null,
+        data_fim: this.dataFim || null,
       })
       .subscribe({
         next: res => { this.response.set(res); this.loading.set(false); },
@@ -46,6 +52,9 @@ export class AskComponent {
   clear(): void {
     this.query = '';
     this.sourceFilter = '';
+    this.grupo = '';
+    this.dataInicio = '';
+    this.dataFim = '';
     this.nResults = 5;
     this.response.set(null);
     this.error.set(null);

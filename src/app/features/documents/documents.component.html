@@ -6,7 +6,7 @@
       <p class="page__subtitle">Gerencie os PDFs indexados no banco vetorial.</p>
     </div>
     @if (stats()) {
-      <span class="badge badge--amber">{{ stats()!.total_chunks }} chunks · {{ (stats()!.documents ?? []).length }} docs</span>
+      <span class="badge badge--amber">{{ stats()!.total_chunks }} chunks · {{ stats()!.total_documents }} docs</span>
     }
   </header>
 
@@ -132,6 +132,14 @@
           </li>
         }
       </ul>
+
+      @if (page() > 0 || hasNextPage()) {
+        <div class="form-actions">
+          <button class="btn btn--ghost btn--sm" (click)="goToPage(page() - 1)" [disabled]="page() === 0">Anterior</button>
+          <span class="form-hint-inline">Página {{ page() + 1 }} · {{ stats()!.total_documents }} documentos</span>
+          <button class="btn btn--ghost btn--sm" (click)="goToPage(page() + 1)" [disabled]="!hasNextPage()">Próxima</button>
+        </div>
+      }
     }
 
     @if (deleteError()) {
