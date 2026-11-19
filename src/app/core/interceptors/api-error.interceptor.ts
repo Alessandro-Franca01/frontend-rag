@@ -9,7 +9,8 @@ import { catchError } from 'rxjs/operators';
 
 export const DEFAULT_CONNECTION_ERROR = 'Erro ao conectar com a API.';
 export const DEFAULT_GENERIC_ERROR = 'Ocorreu um erro inesperado.';
-export const DEFAULT_UNAUTHORIZED_ERROR = 'Não autorizado. Verifique a chave de API.';
+export const DEFAULT_UNAUTHORIZED_ERROR = 'Sessão expirada ou inválida. Faça login novamente.';
+export const DEFAULT_FORBIDDEN_ERROR = 'Você não tem permissão para executar esta ação.';
 
 interface FastApiValidationItem {
   loc?: (string | number)[];
@@ -53,6 +54,8 @@ export function apiErrorInterceptor(
         message = DEFAULT_CONNECTION_ERROR;
       } else if (error.status === 401) {
         message = DEFAULT_UNAUTHORIZED_ERROR;
+      } else if (error.status === 403) {
+        message = DEFAULT_FORBIDDEN_ERROR;
       } else {
         message = extractDetail(error) ?? DEFAULT_GENERIC_ERROR;
       }

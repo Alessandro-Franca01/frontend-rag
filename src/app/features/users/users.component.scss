@@ -1,0 +1,13 @@
+@use '../documents/documents.component.scss';
+
+.user-item {
+  justify-content: space-between;
+}
+
+.user-item__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
