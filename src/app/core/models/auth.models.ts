@@ -4,6 +4,8 @@
 
 export type Role = 'administrativo' | 'consultor';
 
+import type { AgentToolCall } from './api.models';
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -32,6 +34,7 @@ export interface UserRecord {
   full_name: string;
   role: Role;
   is_active: boolean;
+  origens: string[] | null;
   created_at: string;
   last_login_at: string | null;
 }
@@ -41,11 +44,14 @@ export interface CreateUserRequest {
   full_name?: string;
   password: string;
   role: Role;
+  origens?: string[] | null;
 }
 
 export interface UpdateUserRequest {
   is_active?: boolean;
   role?: Role;
+  origens?: string[];
+  all_origens?: boolean;
 }
 
 export interface AuditLogRecord {
@@ -56,6 +62,7 @@ export interface AuditLogRecord {
   query: string;
   sources: string[];
   chunks_used: number;
-  status: 'ok' | 'no_results' | 'error';
+  status: 'ok' | 'no_results' | 'error' | 'incomplete';
+  tools?: AgentToolCall[] | null;
   created_at: string;
 }

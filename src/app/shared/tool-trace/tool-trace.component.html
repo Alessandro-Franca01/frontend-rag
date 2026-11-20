@@ -1,0 +1,34 @@
+<details class="trace">
+  <summary>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+    </svg>
+    Consultas executadas ({{ calls.length }})
+  </summary>
+
+  <ol class="trace__list">
+    @for (call of calls; track $index) {
+      <li class="trace__item" [class.trace__item--error]="call.error">
+        <div class="trace__head">
+          <span class="trace__tool">{{ call.tool }}</span>
+          @if (call.error) {
+            <span class="trace__badge--error">erro</span>
+          }
+        </div>
+        @if (args(call)) {
+          <div class="trace__args">{{ args(call) }}</div>
+        }
+        @if (call.error) {
+          <div class="trace__error">{{ call.error }}</div>
+        }
+        @for (q of call.queries ?? []; track $index) {
+          <pre class="trace__sql">{{ q.sql }}</pre>
+          <div class="trace__meta">
+            @if (params(q.params)) { <span>{{ params(q.params) }}</span> }
+            <span>{{ q.rows }} {{ q.rows === 1 ? 'linha' : 'linhas' }}</span>
+          </div>
+        }
+      </li>
+    }
+  </ol>
+</details>

@@ -21,6 +21,11 @@ export const routes: Routes = [
           import('./features/ask/ask.component').then(m => m.AskComponent),
       },
       {
+        path: 'agent',
+        loadComponent: () =>
+          import('./features/agent/agent.component').then(m => m.AgentComponent),
+      },
+      {
         path: 'documents',
         loadComponent: () =>
           import('./features/documents/documents.component').then(m => m.DocumentsComponent),

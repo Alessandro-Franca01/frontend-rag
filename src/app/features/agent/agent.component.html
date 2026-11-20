@@ -1,0 +1,87 @@
+<div class="page fade-up">
+
+  <header class="page__header fade-up--1">
+    <div>
+      <h1 class="page__title">Agente</h1>
+      <p class="page__subtitle">
+        Perguntas de contagem, período e comparação são respondidas com consultas exatas ao banco;
+        perguntas sobre o conteúdo dos relatórios usam a busca nos documentos.
+      </p>
+    </div>
+    <span class="badge badge--amber">Banco + RAG</span>
+  </header>
+
+  <div class="card fade-up--2">
+    <div class="form-group">
+      <label class="form-label">Sua pergunta</label>
+      <textarea
+        class="form-textarea"
+        [(ngModel)]="query"
+        (keydown)="onKeydown($event)"
+        placeholder="Ex: Quantas faltas o grupo GPA teve em 2023?"
+        rows="3"
+      ></textarea>
+      <span class="form-hint">Pressione <kbd>Ctrl+Enter</kbd> para enviar</span>
+    </div>
+
+    <div class="examples">
+      <span class="examples__label">Exemplos:</span>
+      @for (example of examples; track example) {
+        <button type="button" class="chip" (click)="useExample(example)" [disabled]="loading()">{{ example }}</button>
+      }
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn--ghost" (click)="clear()" [disabled]="loading()">Limpar</button>
+      <button class="btn btn--primary" (click)="submit()" [disabled]="!query.trim() || loading()">
+        @if (loading()) {
+          <span class="spinner"></span> Consultando…
+        } @else {
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Enviar
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert--error fade-up">{{ error() }}</div>
+  }
+
+  @if (response(); as res) {
+    <div class="response-card fade-up">
+      <div class="response-card__header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Resposta</span>
+        <div class="response-meta">
+          <span class="badge badge--blue mono">{{ res.model }}</span>
+          <span class="badge badge--amber">{{ res.steps }} {{ res.steps === 1 ? 'passo' : 'passos' }}</span>
+        </div>
+      </div>
+
+      <div class="response-card__body">
+        <div class="response-text markdown" [innerHTML]="answerHtml()"></div>
+      </div>
+
+      @if (res.sources.length) {
+        <div class="response-card__sources">
+          <span class="sources-label">Fontes:</span>
+          @for (src of res.sources; track src) {
+            <span class="badge badge--green">{{ src }}</span>
+          }
+        </div>
+      }
+
+      @if (res.tool_calls.length) {
+        <div class="response-card__trace">
+          <app-tool-trace [calls]="res.tool_calls" />
+        </div>
+      }
+    </div>
+  }
+
+</div>

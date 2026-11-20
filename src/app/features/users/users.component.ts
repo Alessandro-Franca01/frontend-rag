@@ -24,6 +24,10 @@ export class UsersComponent implements OnInit {
   fullName = '';
   password = '';
   role: Role = 'consultor';
+  origensText = '';
+
+  editingId = signal<number | null>(null);
+  editOrigens = '';
 
   creating = signal(false);
   createError = signal<string | null>(null);
@@ -50,12 +54,13 @@ export class UsersComponent implements OnInit {
   createUser(): void {
     this.creating.set(true);
     this.createError.set(null);
-    this.api.createUser({ email: this.email, full_name: this.fullName, password: this.password, role: this.role }).subscribe({
+    this.api.createUser({ email: this.email, full_name: this.fullName, password: this.password, role: this.role, origens: this.parseOrigens(this.origensText) }).subscribe({
       next: () => {
         this.email = '';
         this.fullName = '';
         this.password = '';
         this.role = 'consultor';
+        this.origensText = '';
         this.creating.set(false);
         this.load();
       },
@@ -71,6 +76,35 @@ export class UsersComponent implements OnInit {
     this.updateError.set(null);
     this.api.updateUser(user.id, { is_active: !user.is_active }).subscribe({
       next: () => { this.updatingId.set(null); this.load(); },
+      error: err => {
+        this.updateError.set(err.error?.detail ?? 'Erro ao atualizar usuário.');
+        this.updatingId.set(null);
+      },
+    });
+  }
+
+  /** "livro, sistemax" -> ['livro', 'sistemax']; empty -> null (every origem). */
+  parseOrigens(text: string): string[] | null {
+    const list = text.split(',').map(o => o.trim().toLowerCase()).filter(Boolean);
+    return list.length ? [...new Set(list)] : null;
+  }
+
+  startEdit(user: UserRecord): void {
+    this.editingId.set(user.id);
+    this.editOrigens = (user.origens ?? []).join(', ');
+    this.updateError.set(null);
+  }
+
+  cancelEdit(): void {
+    this.editingId.set(null);
+  }
+
+  saveOrigens(user: UserRecord): void {
+    const origens = this.parseOrigens(this.editOrigens);
+    this.updatingId.set(user.id);
+    this.updateError.set(null);
+    this.api.updateUser(user.id, origens ? { origens } : { all_origens: true }).subscribe({
+      next: () => { this.updatingId.set(null); this.editingId.set(null); this.load(); },
       error: err => {
         this.updateError.set(err.error?.detail ?? 'Erro ao atualizar usuário.');
         this.updatingId.set(null);
