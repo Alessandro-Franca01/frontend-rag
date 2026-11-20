@@ -30,6 +30,10 @@
         <label class="form-label">Senha</label>
         <input class="form-input" type="password" name="newPassword" [(ngModel)]="password" required minlength="8" />
       </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Origens <span class="form-hint-inline">(opcional)</span></label>
+        <input class="form-input" type="text" name="newOrigens" [(ngModel)]="origensText" placeholder="ex: livro, sistemax (vazio = todas)" />
+      </div>
       <div class="form-group form-group--sm">
         <label class="form-label">Perfil</label>
         <select class="form-input" name="newRole" [(ngModel)]="role">
@@ -80,7 +84,25 @@
               <span class="badge" [class.badge--green]="user.is_active" [class.badge--red]="!user.is_active">
                 {{ user.is_active ? 'ativo' : 'inativo' }}
               </span>
+              @if (editingId() === user.id) {
+                <input class="form-input origens-input" type="text" name="editOrigens{{ user.id }}" [(ngModel)]="editOrigens"
+                       placeholder="livro, sistemax (vazio = todas)" (keydown.enter)="saveOrigens(user)" />
+              } @else if (user.origens === null) {
+                <span class="badge badge--blue" title="Pode consultar todas as origens">todas as origens</span>
+              } @else if (user.origens.length === 0) {
+                <span class="badge badge--red" title="Não pode consultar nenhuma origem">nenhuma origem</span>
+              } @else {
+                @for (origem of user.origens; track origem) {
+                  <span class="badge badge--blue mono">{{ origem }}</span>
+                }
+              }
             </div>
+            @if (editingId() === user.id) {
+              <button class="btn btn--primary btn--sm" (click)="saveOrigens(user)" [disabled]="updatingId() === user.id">Salvar</button>
+              <button class="btn btn--ghost btn--sm" (click)="cancelEdit()">Cancelar</button>
+            } @else {
+              <button class="btn btn--ghost btn--sm" (click)="startEdit(user)" [disabled]="updatingId() === user.id">Origens</button>
+            }
             <button
               class="btn btn--ghost btn--sm"
               (click)="toggleActive(user)"

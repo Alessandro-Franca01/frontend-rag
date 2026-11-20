@@ -88,7 +88,7 @@
       </div>
 
       <div class="response-card__body">
-        <p class="response-text">{{ response()!.answer }}</p>
+        <div class="response-text markdown" [innerHTML]="answerHtml()"></div>
       </div>
 
       @if (response()!.sources.length) {

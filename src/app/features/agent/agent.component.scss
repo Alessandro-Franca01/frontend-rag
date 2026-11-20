@@ -1,0 +1,36 @@
+@use '../ask/ask.component.scss';
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 18px;
+}
+
+.examples__label {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.chip {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+
+  &:hover:not(:disabled) { border-color: var(--border-amber); color: var(--amber); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+.response-card__trace {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+}

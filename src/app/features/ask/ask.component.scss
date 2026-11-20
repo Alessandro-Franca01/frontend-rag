@@ -247,3 +247,23 @@
   .form-row { flex-direction: column; }
   .form-group--sm { max-width: 100%; }
 }
+
+/* Rendered Markdown (innerHTML is outside the component's style encapsulation) */
+:host ::ng-deep .markdown {
+  white-space: normal;
+
+  p { margin: 0 0 12px; }
+  p:last-child, ul:last-child { margin-bottom: 0; }
+  ul { margin: 0 0 12px; padding-left: 20px; }
+  code { font-family: var(--font-mono); font-size: 0.9em; background: var(--bg-overlay); padding: 1px 5px; border-radius: 4px; }
+  strong { color: var(--text-primary); }
+
+  .md-table {
+    border-collapse: collapse;
+    margin: 4px 0 14px;
+    font-size: 14px;
+
+    th, td { border: 1px solid var(--border); padding: 6px 12px; text-align: left; }
+    th { background: var(--bg-elevated); color: var(--text-secondary); font-weight: 600; }
+  }
+}

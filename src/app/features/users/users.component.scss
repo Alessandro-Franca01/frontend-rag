@@ -10,4 +10,11 @@
   gap: 10px;
   flex: 1;
   min-width: 0;
+  flex-wrap: wrap;
+}
+
+.origens-input {
+  max-width: 260px;
+  padding: 6px 10px;
+  font-size: 13px;
 }

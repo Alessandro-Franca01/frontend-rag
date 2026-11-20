@@ -3,7 +3,7 @@
   <header class="page__header fade-up--1">
     <div>
       <h1 class="page__title">Auditoria</h1>
-      <p class="page__subtitle">Registro de quem perguntou o quê e quais documentos foram usados.</p>
+      <p class="page__subtitle">Registro de quem perguntou o quê, quais documentos foram usados e as consultas que o agente executou.</p>
     </div>
   </header>
 
@@ -38,7 +38,7 @@
           <li class="doc-item audit-item">
             <div class="audit-item__head">
               <span class="doc-name mono">{{ caller(log) }}</span>
-              <span class="badge" [class.badge--green]="log.status === 'ok'" [class.badge--amber]="log.status === 'no_results'" [class.badge--red]="log.status === 'error'">
+              <span class="badge" [class.badge--green]="log.status === 'ok'" [class.badge--amber]="log.status === 'no_results' || log.status === 'incomplete'" [class.badge--red]="log.status === 'error'">
                 {{ log.status }}
               </span>
               <span class="audit-item__date">{{ log.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
@@ -46,6 +46,9 @@
             <p class="audit-item__query">{{ log.query }}</p>
             @if (log.sources.length) {
               <p class="audit-item__sources">Fontes: {{ log.sources.join(', ') }} ({{ log.chunks_used }} trechos)</p>
+            }
+            @if (log.tools?.length) {
+              <app-tool-trace [calls]="log.tools!" />
             }
           </li>
         }

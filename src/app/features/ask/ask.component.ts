@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RagApiService } from '../../core/services/rag-api.service';
 import { AskResponse } from '../../core/models/api.models';
+import { renderMarkdown } from '../../core/utils/markdown';
 
 @Component({
   selector: 'app-ask',
@@ -23,6 +24,7 @@ export class AskComponent {
 
   loading = signal(false);
   response = signal<AskResponse | null>(null);
+  answerHtml = signal('');
   error = signal<string | null>(null);
 
   submit(): void {
@@ -42,7 +44,11 @@ export class AskComponent {
         data_fim: this.dataFim || null,
       })
       .subscribe({
-        next: res => { this.response.set(res); this.loading.set(false); },
+        next: res => {
+          this.response.set(res);
+          this.answerHtml.set(renderMarkdown(res.answer));
+          this.loading.set(false);
+        },
         error: err => {
           this.error.set(err.error?.detail);
           this.loading.set(false);

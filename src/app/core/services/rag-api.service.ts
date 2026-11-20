@@ -3,6 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  AgentRequest,
+  AgentResponse,
   AskRequest,
   AskResponse,
   CollectionStatsResponse,
@@ -63,5 +65,10 @@ export class RagApiService {
 
   ask(body: AskRequest): Observable<AskResponse> {
     return this.http.post<AskResponse>(`${this.base}/search/ask`, body);
+  }
+
+  // ── Agent ───────────────────────────────────────────────────
+  askAgent(body: AgentRequest): Observable<AgentResponse> {
+    return this.http.post<AgentResponse>(`${this.base}/agent/ask`, body);
   }
 }

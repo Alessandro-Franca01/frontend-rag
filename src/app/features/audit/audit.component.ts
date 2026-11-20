@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuditApiService } from '../../core/services/audit-api.service';
 import { AuditLogRecord } from '../../core/models/auth.models';
+import { ToolTraceComponent } from '../../shared/tool-trace/tool-trace.component';
 
 const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-audit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ToolTraceComponent],
   templateUrl: './audit.component.html',
   styleUrl: './audit.component.scss',
 })

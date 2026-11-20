@@ -449,7 +449,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "Semantic search â€” retrieve relevant chunks",
+        "summary": "Semantic search — retrieve relevant chunks",
         "description": "Performs a pure semantic search and returns the most relevant text chunks\n**without** calling the LLM. Useful for inspecting retrieved context.",
         "operationId": "semantic_search_search__post",
         "requestBody": {
@@ -499,7 +499,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "Ask a question â€” search + LLM answer",
+        "summary": "Ask a question — search + LLM answer",
         "description": "Full RAG pipeline:\n1. Semantic search to retrieve the most relevant chunks.\n2. Pass chunks as context to the GROQ LLM.\n3. Return the generated answer along with metadata.",
         "operationId": "ask_search_ask_post",
         "requestBody": {
@@ -519,6 +519,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          },
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/agent/ask": {
+      "post": {
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Ask the agent — database queries and/or document search",
+        "description": "The agent picks its tools: exact counts and lists come from the Livro database\n(read-only views); report contents come from the document search. Every tool\ncall and query executed is recorded in the audit log.",
+        "operationId": "ask_agent_agent_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentResponse"
                 }
               }
             }
@@ -753,7 +803,7 @@
         "tags": [
           "Users"
         ],
-        "summary": "Activate/deactivate a user or change their role",
+        "summary": "Activate/deactivate a user, change their role or the origens they may query",
         "operationId": "update_user_users__user_id__patch",
         "security": [
           {
@@ -811,6 +861,67 @@
   },
   "components": {
     "schemas": {
+      "AgentRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Query",
+            "description": "Pergunta (contagens, períodos, comparações ou conteúdo dos relatórios)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "AgentRequest"
+      },
+      "AgentResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "tool_calls": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Tool Calls",
+            "description": "Ferramentas chamadas, com argumentos e consultas executadas"
+          },
+          "steps": {
+            "type": "integer",
+            "title": "Steps"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "answer",
+          "sources",
+          "steps",
+          "model"
+        ],
+        "title": "AgentResponse"
+      },
       "AskRequest": {
         "properties": {
           "query": {
@@ -825,7 +936,7 @@
             "maximum": 20.0,
             "minimum": 1.0,
             "title": "N Results",
-            "description": "NÃºmero de chunks a recuperar",
+            "description": "Número de chunks a recuperar",
             "default": 5
           },
           "source_filter": {
@@ -850,7 +961,7 @@
               }
             ],
             "title": "Doc Id",
-            "description": "Filtrar por id Ãºnico do documento"
+            "description": "Filtrar por id único do documento"
           },
           "origem": {
             "anyOf": [
@@ -891,7 +1002,7 @@
               }
             ],
             "title": "Nivel Acesso",
-            "description": "Filtrar por nÃ­vel de acesso"
+            "description": "Filtrar por nível de acesso"
           },
           "data_inicio": {
             "anyOf": [
@@ -917,7 +1028,7 @@
               }
             ],
             "title": "Data Fim",
-            "description": "Data do documento atÃ© (inclusive)"
+            "description": "Data do documento até (inclusive)"
           }
         },
         "type": "object",
@@ -1020,6 +1131,21 @@
           "status": {
             "type": "string",
             "title": "Status"
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tools"
           },
           "created_at": {
             "type": "string",
@@ -1336,11 +1462,18 @@
             "default": "interno"
           },
           "origem": {
-            "type": "string",
-            "maxLength": 50,
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Origem",
-            "default": "livro"
+            "description": "Optional: the origem is defined by the service key; if sent, it must match"
           },
           "source_name": {
             "anyOf": [
@@ -1509,7 +1642,7 @@
             "maximum": 20.0,
             "minimum": 1.0,
             "title": "N Results",
-            "description": "NÃºmero de chunks a recuperar",
+            "description": "Número de chunks a recuperar",
             "default": 5
           },
           "source_filter": {
@@ -1534,7 +1667,7 @@
               }
             ],
             "title": "Doc Id",
-            "description": "Filtrar por id Ãºnico do documento"
+            "description": "Filtrar por id único do documento"
           },
           "origem": {
             "anyOf": [
@@ -1575,7 +1708,7 @@
               }
             ],
             "title": "Nivel Acesso",
-            "description": "Filtrar por nÃ­vel de acesso"
+            "description": "Filtrar por nível de acesso"
           },
           "data_inicio": {
             "anyOf": [
@@ -1601,7 +1734,7 @@
               }
             ],
             "title": "Data Fim",
-            "description": "Data do documento atÃ© (inclusive)"
+            "description": "Data do documento até (inclusive)"
           }
         },
         "type": "object",
@@ -1723,6 +1856,21 @@
           "role": {
             "$ref": "#/components/schemas/Role",
             "default": "consultor"
+          },
+          "origens": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origens",
+            "description": "Origens this user may query; omitted = all"
           }
         },
         "type": "object",
@@ -1752,6 +1900,20 @@
           "is_active": {
             "type": "boolean",
             "title": "Is Active"
+          },
+          "origens": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origens"
           },
           "created_at": {
             "type": "string",
@@ -1804,6 +1966,27 @@
                 "type": "null"
               }
             ]
+          },
+          "origens": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origens",
+            "description": "Replaces the list; use [] to block every origem"
+          },
+          "all_origens": {
+            "type": "boolean",
+            "title": "All Origens",
+            "description": "true removes the restriction (access to every origem)",
+            "default": false
           }
         },
         "type": "object",

@@ -166,7 +166,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Semantic search — retrieve relevant chunks
+         * Semantic search � retrieve relevant chunks
          * @description Performs a pure semantic search and returns the most relevant text chunks
          *     **without** calling the LLM. Useful for inspecting retrieved context.
          */
@@ -187,13 +187,35 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Ask a question — search + LLM answer
+         * Ask a question � search + LLM answer
          * @description Full RAG pipeline:
          *     1. Semantic search to retrieve the most relevant chunks.
          *     2. Pass chunks as context to the GROQ LLM.
          *     3. Return the generated answer along with metadata.
          */
         post: operations["ask_search_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/agent/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask the agent � database queries and/or document search
+         * @description The agent picks its tools: exact counts and lists come from the Livro database
+         *     (read-only views); report contents come from the document search. Every tool
+         *     call and query executed is recorded in the audit log.
+         */
+        post: operations["ask_agent_agent_ask_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -248,7 +270,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Activate/deactivate a user or change their role */
+        /** Activate/deactivate a user, change their role or the origens they may query */
         patch: operations["update_user_users__user_id__patch"];
         trace?: never;
     };
@@ -256,6 +278,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AgentRequest */
+        AgentRequest: {
+            /**
+             * Query
+             * @description Pergunta (contagens, per�odos, compara��es ou conte�do dos relat�rios)
+             */
+            query: string;
+        };
+        /** AgentResponse */
+        AgentResponse: {
+            /** Query */
+            query: string;
+            /** Answer */
+            answer: string;
+            /** Sources */
+            sources: string[];
+            /**
+             * Tool Calls
+             * @description Ferramentas chamadas, com argumentos e consultas executadas
+             */
+            tool_calls?: {
+                [key: string]: unknown;
+            }[];
+            /** Steps */
+            steps: number;
+            /** Model */
+            model: string;
+        };
         /**
          * AskRequest
          * @description Subclass of QueryRequest so `/search` and `/search/ask` share a single
@@ -270,7 +320,7 @@ export interface components {
             query: string;
             /**
              * N Results
-             * @description Número de chunks a recuperar
+             * @description N�mero de chunks a recuperar
              * @default 5
              */
             n_results: number;
@@ -281,7 +331,7 @@ export interface components {
             source_filter?: string | null;
             /**
              * Doc Id
-             * @description Filtrar por id único do documento
+             * @description Filtrar por id �nico do documento
              */
             doc_id?: string | null;
             /**
@@ -296,7 +346,7 @@ export interface components {
             grupo?: string | null;
             /**
              * Nivel Acesso
-             * @description Filtrar por nível de acesso
+             * @description Filtrar por n�vel de acesso
              */
             nivel_acesso?: ("publico" | "interno" | "sigiloso") | null;
             /**
@@ -306,7 +356,7 @@ export interface components {
             data_inicio?: string | null;
             /**
              * Data Fim
-             * @description Data do documento até (inclusive)
+             * @description Data do documento at� (inclusive)
              */
             data_fim?: string | null;
         };
@@ -343,6 +393,10 @@ export interface components {
             chunks_used: number;
             /** Status */
             status: string;
+            /** Tools */
+            tools?: {
+                [key: string]: unknown;
+            }[] | null;
             /**
              * Created At
              * Format: date-time
@@ -518,9 +572,9 @@ export interface components {
             nivel_acesso: "publico" | "interno" | "sigiloso";
             /**
              * Origem
-             * @default livro
+             * @description Optional: the origem is defined by the service key; if sent, it must match
              */
-            origem: string;
+            origem?: string | null;
             /**
              * Source Name
              * @description Display name (defaults to the key's file name)
@@ -590,7 +644,7 @@ export interface components {
             query: string;
             /**
              * N Results
-             * @description Número de chunks a recuperar
+             * @description N�mero de chunks a recuperar
              * @default 5
              */
             n_results: number;
@@ -601,7 +655,7 @@ export interface components {
             source_filter?: string | null;
             /**
              * Doc Id
-             * @description Filtrar por id único do documento
+             * @description Filtrar por id �nico do documento
              */
             doc_id?: string | null;
             /**
@@ -616,7 +670,7 @@ export interface components {
             grupo?: string | null;
             /**
              * Nivel Acesso
-             * @description Filtrar por nível de acesso
+             * @description Filtrar por n�vel de acesso
              */
             nivel_acesso?: ("publico" | "interno" | "sigiloso") | null;
             /**
@@ -626,7 +680,7 @@ export interface components {
             data_inicio?: string | null;
             /**
              * Data Fim
-             * @description Data do documento até (inclusive)
+             * @description Data do documento at� (inclusive)
              */
             data_fim?: string | null;
         };
@@ -692,6 +746,11 @@ export interface components {
             password: string;
             /** @default consultor */
             role: components["schemas"]["Role"];
+            /**
+             * Origens
+             * @description Origens this user may query; omitted = all
+             */
+            origens?: string[] | null;
         };
         /** UserOut */
         UserOut: {
@@ -704,6 +763,8 @@ export interface components {
             role: components["schemas"]["Role"];
             /** Is Active */
             is_active: boolean;
+            /** Origens */
+            origens?: string[] | null;
             /**
              * Created At
              * Format: date-time
@@ -717,6 +778,17 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
             role?: components["schemas"]["Role"] | null;
+            /**
+             * Origens
+             * @description Replaces the list; use [] to block every origem
+             */
+            origens?: string[] | null;
+            /**
+             * All Origens
+             * @description true removes the restriction (access to every origem)
+             * @default false
+             */
+            all_origens: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -1048,6 +1120,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_agent_agent_ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentResponse"];
                 };
             };
             /** @description Validation Error */
